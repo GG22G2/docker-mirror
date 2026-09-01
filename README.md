@@ -9,7 +9,7 @@
 - **手动触发**：编辑镜像清单提交后，到 Actions 页面一键运行，或用 `gh workflow run` 触发
 - **多源支持**：Docker Hub、GHCR、Quay.io、registry.k8s.io 等任何公开镜像源
 - **平台可控**：默认同步 amd64，可按镜像标记 arm64 或全部架构
-- **直传不落盘**：使用 skopeo registry-to-registry 直传，不占用 Runner 磁盘，速度快
+- **直传不解包**：skopeo 在两个 registry 之间原样复制压缩层数据，不经过 docker 解包/重打包，仅以压缩态临时中转，省时省空间
 - **完整性校验**：每个镜像同步后自动比对镜像ID（镜像配置的 sha256）与源站是否一致
 - **可用性验证**：内置验证工作流，可对任意 tag 做真实拉取 + 运行测试
 - **失败隔离**：单个镜像同步失败不影响其他镜像，结束时汇总报告
@@ -43,11 +43,17 @@ images.txt（镜像清单） → sync.yml（手动触发） → sync.sh（解析
 示例：
 
 ```
-nginx:1.27                    → ck:nginx_1.27          (amd64)
-redis:7.4 | my_redis          → ck:my_redis            (amd64)
-alpine:3.20 | | arm           → ck:alpine_3.20         (arm64)
-alpine:3.20 | my_tag | all    → ck:my_tag              (全部架构)
+nginx:1.27                  → ck:nginx_1.27     (amd64)
+redis:7.4 | my_redis        → ck:my_redis       (amd64)
+alpine:3.20 | arm           → ck:alpine_3.20    (arm64)
+alpine:3.20 | my_tag | all  → ck:my_tag         (全部架构)
 ```
+
+语法要点：
+
+- `|` 前后的空格可有可无，各字段两端空白一律忽略：`nginx:1.27|my_tag` 与 `nginx:1.27 | my_tag` 等价
+- 第 2 个字段如果是平台关键字会被自动识别，无需为凑位置写空段：`alpine:3.20 | arm` 与 `alpine:3.20 | | arm` 等价
+- 自定义 tag 避免使用 `all` / `arm` / `amd64` 等关键字，否则会被当作平台标记
 
 ## 命名规则
 
