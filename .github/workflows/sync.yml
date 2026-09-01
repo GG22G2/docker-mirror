@@ -36,11 +36,11 @@ jobs:
 
       - name: 登录阿里云容器镜像服务
         env:
-          ALIYUN_USERNAME: ${{ secrets.ALIYUN_USERNAME }}
-          ALIYUN_PASSWORD: ${{ secrets.ALIYUN_PASSWORD }}
+          ALIYUN_ACR_USERNAME: ${{ secrets.ALIYUN_ACR_USERNAME }}
+          ALIYUN_ACR_PASSWORD: ${{ secrets.ALIYUN_ACR_PASSWORD }}
         run: |
-          printf '%s' "$ALIYUN_PASSWORD" | skopeo login \
-            --username "$ALIYUN_USERNAME" \
+          printf '%s' "$ALIYUN_ACR_PASSWORD" | skopeo login \
+            --username "$ALIYUN_ACR_USERNAME" \
             --password-stdin "$REGISTRY"
 
       - name: 同步镜像

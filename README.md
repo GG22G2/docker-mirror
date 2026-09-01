@@ -11,14 +11,14 @@
 
 | 名称 | 值 |
 |---|---|
-| `ALIYUN_USERNAME` | `gg2gg2` |
-| `ALIYUN_PASSWORD` | 阿里云 ACR 的固定密码（容器镜像服务「访问凭证」页面设置的那个） |
+| `ALIYUN_ACR_USERNAME` | `gg2gg2` |
+| `ALIYUN_ACR_PASSWORD` | 阿里云 ACR 的固定密码（容器镜像服务「访问凭证」页面设置的那个） |
 
 也可以在本地用命令设置（密码不会显示在聊天/日志里）：
 
 ```bash
-gh secret set ALIYUN_USERNAME -R GG22G2/docker-mirror
-gh secret set ALIYUN_PASSWORD -R GG22G2/docker-mirror
+gh secret set ALIYUN_ACR_USERNAME -R GG22G2/docker-mirror
+gh secret set ALIYUN_ACR_PASSWORD -R GG22G2/docker-mirror
 ```
 
 ### 2. 编辑镜像清单
