@@ -1,0 +1,49 @@
+name: 同步镜像到阿里云ACR
+
+on:
+  workflow_dispatch:
+    inputs:
+      images:
+        description: '可选：手动指定要同步的镜像（空格分隔），留空则同步 images.txt 全部'
+        required: false
+        default: ''
+  # 如需定时自动同步，取消下面三行注释（示例：每天北京时间 12:00）
+  # schedule:
+  #   - cron: '0 4 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: acr-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      REGISTRY: crpi-xm8affxmcnbpks63.cn-shanghai.personal.cr.aliyuncs.com
+      DEST_REPO: gg22g2/ck
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 安装 skopeo
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq skopeo
+
+      - name: 登录阿里云容器镜像服务
+        env:
+          ALIYUN_USERNAME: ${{ secrets.ALIYUN_USERNAME }}
+          ALIYUN_PASSWORD: ${{ secrets.ALIYUN_PASSWORD }}
+        run: |
+          printf '%s' "$ALIYUN_PASSWORD" | skopeo login \
+            --username "$ALIYUN_USERNAME" \
+            --password-stdin "$REGISTRY"
+
+      - name: 同步镜像
+        env:
+          INPUT_IMAGES: ${{ inputs.images }}
+        run: bash sync.sh $INPUT_IMAGES
