@@ -25,7 +25,7 @@ jobs:
     env:
       REGISTRY: crpi-xm8affxmcnbpks63.cn-shanghai.personal.cr.aliyuncs.com
       DEST_REPO: gg22g2/ck
-      IMAGE: crpi-xm8affxmcnbpks63.cn-shanghai.personal.cr.aliyuncs.com/gg22g2/ck/${{ inputs.image }}
+      IMAGE: crpi-xm8affxmcnbpks63.cn-shanghai.personal.cr.aliyuncs.com/gg22g2/ck:${{ inputs.image }}
     steps:
       - name: 登录阿里云ACR
         env:
