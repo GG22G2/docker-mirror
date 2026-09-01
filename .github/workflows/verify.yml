@@ -48,7 +48,7 @@ jobs:
           echo "amd64 镜像ID: $AMD64_ID"
           echo "AMD64_ID=$AMD64_ID" >> "$GITHUB_ENV"
           # shellcheck disable=SC2086
-          docker run --rm $RUN_CMD "$IMAGE"
+          docker run --rm "$IMAGE" $RUN_CMD
 
       - name: 安装QEMU（用于模拟运行arm64）
         uses: docker/setup-qemu-action@v3
@@ -58,9 +58,14 @@ jobs:
           RUN_CMD: ${{ inputs.run_command }}
         run: |
           if docker pull --platform linux/arm64 "$IMAGE"; then
-            echo "arm64 镜像ID: $(docker inspect -f '{{.Id}}' "$IMAGE")"
-            # shellcheck disable=SC2086
-            docker run --rm --platform linux/arm64 $RUN_CMD "$IMAGE"
+            ARCH="$(docker inspect -f '{{.Architecture}}' "$IMAGE")"
+            if [[ "$ARCH" == "arm64" ]]; then
+              echo "arm64 镜像ID: $(docker inspect -f '{{.Id}}' "$IMAGE")"
+              # shellcheck disable=SC2086
+              docker run --rm --platform linux/arm64 "$IMAGE" $RUN_CMD
+            else
+              echo "⚠️ 拉到的不是 arm64（实际: $ARCH），该镜像没有 arm64 版本（仅同步了 amd64 时属正常）"
+            fi
           else
             echo "⚠️ 该镜像没有 arm64 版本（仅同步了 amd64 时属正常）"
           fi
