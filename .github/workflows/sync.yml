@@ -39,8 +39,10 @@ jobs:
           ALIYUN_ACR_USERNAME: ${{ secrets.ALIYUN_ACR_USERNAME }}
           ALIYUN_ACR_PASSWORD: ${{ secrets.ALIYUN_ACR_PASSWORD }}
         run: |
-          printf '%s' "$ALIYUN_ACR_PASSWORD" | skopeo login \
-            --username "$ALIYUN_ACR_USERNAME" \
+          ACR_USER="$(echo -n "$ALIYUN_ACR_USERNAME" | tr -d '[:space:]')"
+          ACR_PASS="$(echo -n "$ALIYUN_ACR_PASSWORD" | tr -d '[:space:]')"
+          printf '%s' "$ACR_PASS" | skopeo login \
+            --username "$ACR_USER" \
             --password-stdin "$REGISTRY"
 
       - name: 同步镜像
