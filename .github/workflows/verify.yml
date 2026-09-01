@@ -1,0 +1,82 @@
+name: 验证ACR镜像
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: 'ck 仓库中的 tag，例如 hello-world_latest'
+        required: true
+      run_command:
+        description: '可选：容器内执行的命令（如 postgres --version），留空用镜像默认命令'
+        required: false
+        default: ''
+      source_image:
+        description: '可选：源镜像（如 postgres:17），用于对比镜像ID'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      REGISTRY: crpi-xm8affxmcnbpks63.cn-shanghai.personal.cr.aliyuncs.com
+      DEST_REPO: gg22g2/ck
+      IMAGE: crpi-xm8affxmcnbpks63.cn-shanghai.personal.cr.aliyuncs.com/gg22g2/ck/${{ inputs.image }}
+    steps:
+      - name: 登录阿里云ACR
+        env:
+          ALIYUN_ACR_USERNAME: ${{ secrets.ALIYUN_ACR_USERNAME }}
+          ALIYUN_ACR_PASSWORD: ${{ secrets.ALIYUN_ACR_PASSWORD }}
+        run: |
+          ACR_USER="$(echo -n "$ALIYUN_ACR_USERNAME" | tr -d '[:space:]')"
+          ACR_PASS="$(echo -n "$ALIYUN_ACR_PASSWORD" | tr -d '[:space:]')"
+          printf '%s' "$ACR_PASS" | docker login "$REGISTRY" --username "$ACR_USER" --password-stdin
+
+      - name: 查看镜像清单结构
+        run: docker manifest inspect "$IMAGE" || true
+
+      - name: amd64 拉取并运行
+        env:
+          RUN_CMD: ${{ inputs.run_command }}
+        run: |
+          docker pull "$IMAGE"
+          AMD64_ID="$(docker inspect -f '{{.Id}}' "$IMAGE")"
+          echo "amd64 镜像ID: $AMD64_ID"
+          echo "AMD64_ID=$AMD64_ID" >> "$GITHUB_ENV"
+          # shellcheck disable=SC2086
+          docker run --rm $RUN_CMD "$IMAGE"
+
+      - name: 安装QEMU（用于模拟运行arm64）
+        uses: docker/setup-qemu-action@v3
+
+      - name: arm64 拉取并运行（如存在）
+        env:
+          RUN_CMD: ${{ inputs.run_command }}
+        run: |
+          if docker pull --platform linux/arm64 "$IMAGE"; then
+            echo "arm64 镜像ID: $(docker inspect -f '{{.Id}}' "$IMAGE")"
+            # shellcheck disable=SC2086
+            docker run --rm --platform linux/arm64 $RUN_CMD "$IMAGE"
+          else
+            echo "⚠️ 该镜像没有 arm64 版本（仅同步了 amd64 时属正常）"
+          fi
+
+      - name: 与源镜像对比镜像ID
+        if: ${{ inputs.source_image != '' }}
+        env:
+          SOURCE: ${{ inputs.source_image }}
+        run: |
+          docker pull "$SOURCE"
+          SRC_ID="$(docker inspect -f '{{.Id}}' "$SOURCE")"
+          echo "源镜像 $SOURCE 镜像ID: $SRC_ID"
+          echo "ACR 镜像ID(amd64):   $AMD64_ID"
+          if [[ "$SRC_ID" == "$AMD64_ID" ]]; then
+            echo "✅ 镜像ID一致，ACR 上的镜像与源站内容完全相同"
+          else
+            echo "::error::镜像ID不一致"
+            exit 1
+          fi
