@@ -41,6 +41,7 @@ jobs:
         run: |
           ACR_USER="$(echo -n "$ALIYUN_ACR_USERNAME" | tr -d '[:space:]')"
           ACR_PASS="$(echo -n "$ALIYUN_ACR_PASSWORD" | tr -d '[:space:]')"
+          echo "诊断: 用户名=[$ACR_USER] 密码长度=${#ACR_PASS}"
           printf '%s' "$ACR_PASS" | skopeo login \
             --username "$ACR_USER" \
             --password-stdin "$REGISTRY"
