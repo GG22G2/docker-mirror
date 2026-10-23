@@ -16,14 +16,14 @@
 #       属正常现象（拉取和运行都不受影响）
 # ============================================================
 
-postgres:17
+# postgres:17
 
 # 称重物料柜（bjczg）native 应用镜像的基础镜像
-ubuntu:22.04 | ubuntu22-arm | arm
+# ubuntu:22.04 | ubuntu22-arm | arm
 
 # GraalVM native-image arm64 + musl 工具镜像的基础镜像（Oracle Linux 10 slim, arm64）
-oraclelinux:10-slim | oraclelinux10slim-arm | arm
+# oraclelinux:10-slim | oraclelinux10slim-arm | arm
 
 # 把已有的 arm glibc 工具镜像原样改名为 graalvm-oracle-jdk25-arm-glibc-maven
 # （同 registry 内 skopeo 原样复制，不重新构建，产物字节不变）
-crpi-xm8affxmcnbpks63.cn-shanghai.personal.cr.aliyuncs.com/gg22g2/ck:graalvm-oracle-jdk25-arm-musl-maven | graalvm-oracle-jdk25-arm-glibc-maven | arm
+# crpi-xm8affxmcnbpks63.cn-shanghai.personal.cr.aliyuncs.com/gg22g2/ck:graalvm-oracle-jdk25-arm-musl-maven | graalvm-oracle-jdk25-arm-glibc-maven | arm
