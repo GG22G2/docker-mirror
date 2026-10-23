@@ -20,3 +20,6 @@ postgres:17
 
 # 称重物料柜（bjczg）native 应用镜像的基础镜像
 ubuntu:22.04 | ubuntu22-arm | arm
+
+# GraalVM native-image arm64 + musl 工具镜像的基础镜像（Oracle Linux 10 slim, arm64）
+oraclelinux:10-slim | oraclelinux10slim-arm | arm
